@@ -21,6 +21,10 @@ public class Creditcard implements Persistable<String> {
     return id;
   }
 
+  public void setId(String id) {
+    this.id = id;
+  }
+
   public String getNumber() {
     return number;
   }

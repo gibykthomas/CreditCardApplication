@@ -1,0 +1,17 @@
+package com.sapient.creditcardApplication.domain;
+
+import java.math.BigDecimal;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+@AllArgsConstructor
+public class CreditcardResponse {
+  private  String number;
+  private  String name;
+  private BigDecimal balance;
+  private  BigDecimal creditlimit;
+}

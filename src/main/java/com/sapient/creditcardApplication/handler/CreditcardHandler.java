@@ -1,6 +1,8 @@
 package com.sapient.creditcardApplication.handler;
 
 import com.sapient.creditcardApplication.domain.Creditcard;
+import com.sapient.creditcardApplication.domain.CreditcardResponse;
+import com.sapient.creditcardApplication.mapper.CreditcardMapper;
 import com.sapient.creditcardApplication.repository.CreditcardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +24,7 @@ public class CreditcardHandler {
       return cardMono
              .flatMap(card ->   ServerResponse.status(HttpStatus.CREATED)
                 .contentType(APPLICATION_JSON)
-                .body(creditcardRepository.save(card), Creditcard.class)
+                .body(creditcardRepository.save(card).map(CreditcardMapper::responseDto), CreditcardResponse.class)
           );
     }
 
@@ -30,6 +32,6 @@ public class CreditcardHandler {
     Flux<Creditcard> cards = creditcardRepository.findAll();
     return ServerResponse.ok().
         contentType(APPLICATION_JSON)
-        .body(cards, Creditcard.class);
+        .body(cards.map(CreditcardMapper::responseDto), CreditcardResponse.class);
   }
 }

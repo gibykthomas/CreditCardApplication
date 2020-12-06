@@ -5,6 +5,7 @@ import com.sapient.creditcardApplication.domain.CreditcardResponse;
 import com.sapient.creditcardApplication.domain.ErrorResponse;
 import com.sapient.creditcardApplication.mapper.CreditcardMapper;
 import com.sapient.creditcardApplication.repository.CreditcardRepository;
+import com.sapient.creditcardApplication.utlils.Crypto;
 import com.sapient.creditcardApplication.utlils.PayloadValidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class CreditcardHandler {
   public Mono<ServerResponse> addCreditcard(ServerRequest request) {
       Mono<Creditcard> cardMono = request.bodyToMono(Creditcard.class);
 
-    return cardMono.flatMap(card ->  creditcardRepository.findByNumber(card.getNumber())
+    return cardMono.flatMap(card ->  creditcardRepository.findByNumber(Crypto.encrypt(card.getNumber()))
         .flatMap(existingId ->
             ServerResponse.status(BAD_REQUEST).contentType(APPLICATION_JSON)
                 .body(BodyInserters.fromValue(new ErrorResponse(String.valueOf(BAD_REQUEST.value()),"Creditcard is already added")))
@@ -41,9 +42,9 @@ public class CreditcardHandler {
         .switchIfEmpty(
             validateUser(card)
                 .switchIfEmpty(
-                    creditcardRepository.save(card)
+                    creditcardRepository.save(CreditcardMapper.encryptCardDto(card))
                         .flatMap(newCard -> ServerResponse.status(CREATED).contentType(APPLICATION_JSON)
-                            .body(BodyInserters.fromValue(CreditcardMapper.responseDto(card))))
+                            .body(BodyInserters.fromValue(CreditcardMapper.responseDto(newCard))))
                 )
         ));
 

@@ -23,11 +23,11 @@
 hs_err_pid*
 .gradle/
 .idea/
-build/
 out/
 *.iml
 *.jks
 status.json
+/build
 /src/main/resources/application.yml
 secret.yml
 .DS_Store

@@ -7,8 +7,11 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Table;
 
+import lombok.Builder;
+
+@Builder
 @Table("creditcard")
-public class Creditcard implements Persistable<String> {
+public class Creditcard implements Persistable<String>{
   @Id
   private String id;
   private String number;
@@ -57,24 +60,9 @@ public class Creditcard implements Persistable<String> {
     this.creditLimit = creditLimit;
   }
 
-  public Creditcard(String number, String name, BigDecimal balance, BigDecimal creditLimit) {
-    this.number = number;
-    this.name = name;
-    this.balance = balance;
-    this.creditLimit = creditLimit;
-  }
-
-  @Transient
-  private boolean newCard;
-
   @Override
   @Transient
   public boolean isNew() {
-    return this.newCard || getId() == null;
-  }
-
-  public Creditcard setAsNew() {
-    this.newCard = true;
-    return this;
+    return true;
   }
 }

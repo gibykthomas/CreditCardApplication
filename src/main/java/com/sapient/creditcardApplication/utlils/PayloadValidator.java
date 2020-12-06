@@ -21,8 +21,6 @@ public class PayloadValidator implements Validator {
 
   private void validateCardNumber(Errors errors, String number) {
     int numberLength = number.length();
-    System.out.println(number);
-
     if (numberLength < 16 || numberLength > 19) {
       errors.rejectValue("number", "400","length of creditcard number has to be between 16 and 19");
     }

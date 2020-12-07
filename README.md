@@ -11,15 +11,11 @@ Credit Card Management Application
  
 2. Build the project with the following command in the terminal
  
- ./gradlew build
+    ./gradlew build
  
- 3. Create the docker image with the next command:
+ 3. Then run the container:
  
- docker build -t creditcard-app .
+    docker-compose up
  
- 4. Then run the container:
- 
- docker run -p 8080:8080 -t creditcard-app
- 
- 5. Swagger: https://github.com/gibykthomas/CreditCardApplication/blob/main/swagger/swagger.yml
+ 4. Swagger: https://github.com/gibykthomas/CreditCardApplication/blob/main/swagger/swagger.yml
 ```

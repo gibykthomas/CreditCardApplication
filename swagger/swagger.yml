@@ -1,0 +1,77 @@
+swagger: '2.0'
+info:
+  description: Credit card API.
+  version: 1.0.0
+  title: Credit card API
+tags:
+- name: Credit Card
+  description: Everything about creditcards
+paths:
+  /creditcard/add:
+    post:
+      tags:
+      - Credit Card
+      summary: Add a new creditcard
+      operationId: addCard
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        description: Credit object that needs to be added to the store
+        required: true
+        schema:
+          $ref: '#/definitions/creditcardrequest'
+      responses:
+        400:
+          description: Bad Request
+  /creditcard/get_all:        
+    get:
+      tags:
+      - Credit Card
+      summary: Get All Credit cards
+      operationId: getCards
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        200:
+          description: search results
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/creditcardresponse'
+definitions:
+  creditcardrequest:
+    type: object
+    properties:
+      number:
+        type: string
+        format: '1234'
+      name:
+        type: string
+        format: ''
+      creditLimit:
+        type: integer
+        format: int32
+  creditcardresponse:
+    type: object
+    properties:
+      number:
+        type: string
+        format: '1234'
+      name:
+        type: string
+        format: ''
+      creditLimit:
+        type: integer
+        format: int32
+      balance: 
+        type: integer
+        format: int32
+basePath: /localhost:8080
+schemes:
+ - http

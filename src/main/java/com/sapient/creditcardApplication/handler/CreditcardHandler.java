@@ -16,14 +16,16 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+@Slf4j
 @Configuration
 public class CreditcardHandler {
   @Autowired
@@ -33,18 +35,21 @@ public class CreditcardHandler {
 
   public Mono<ServerResponse> addCreditcard(ServerRequest request) {
       Mono<Creditcard> cardMono = request.bodyToMono(Creditcard.class);
-
-    return cardMono.flatMap(card ->  creditcardRepository.findByNumber(Crypto.encrypt(card.getNumber()))
-        .flatMap(existingId ->
-            ServerResponse.status(BAD_REQUEST).contentType(APPLICATION_JSON)
-                .body(BodyInserters.fromValue(new ErrorResponse(String.valueOf(BAD_REQUEST.value()),"Creditcard is already added")))
+      return cardMono.flatMap(card ->  creditcardRepository.findByNumber(Crypto.encrypt(card.getNumber()))
+        .flatMap(existingId -> {
+          log.info(String.format("Creditcard  - %s already exists",card.getNumber().replaceAll(".(?=.{4})", "X")));
+          return ServerResponse.status(BAD_REQUEST).contentType(APPLICATION_JSON)
+                  .body(BodyInserters.fromValue(new ErrorResponse(String.valueOf(BAD_REQUEST.value()), "Creditcard is already added")));
+            }
         )
         .switchIfEmpty(
-            validateUser(card)
+            validateCard(card)
                 .switchIfEmpty(
                     creditcardRepository.save(CreditcardMapper.encryptCardDto(card))
-                        .flatMap(newCard -> ServerResponse.status(CREATED).contentType(APPLICATION_JSON)
-                            .body(BodyInserters.fromValue(CreditcardMapper.responseDto(newCard))))
+                        .flatMap(newCard ->
+                          ServerResponse.status(CREATED).contentType(APPLICATION_JSON)
+                              .body(BodyInserters.fromValue(CreditcardMapper.responseDto(newCard)))
+                        )
                 )
         ));
 
@@ -57,17 +62,16 @@ public class CreditcardHandler {
         .body(cards.map(CreditcardMapper::responseDto), CreditcardResponse.class);
   }
 
-  private Mono<ServerResponse> validateUser(Creditcard card) {
+  private Mono<ServerResponse> validateCard(Creditcard card) {
     return Mono.just(new BeanPropertyBindingResult(card, Creditcard.class.getName()))
         .doOnNext(err -> payloadValidator.validate(card, err))
         .filter(AbstractBindingResult::hasErrors)
-        .flatMap(err ->
-            ServerResponse.status(NOT_IMPLEMENTED)
-                .contentType(APPLICATION_JSON)
-                .body(BodyInserters.fromValue(new ErrorResponse(err.getAllErrors().get(0).getCode(),err.getAllErrors().get(0).getDefaultMessage())))
+        .flatMap(err -> {
+          log.info(String.format("Error in validating the credit card - %s - %s",card.getNumber().replaceAll(".(?=.{4})", "X"),err.getAllErrors().get(0).getDefaultMessage()));
+          return ServerResponse.status(BAD_REQUEST)
+              .contentType(APPLICATION_JSON)
+              .body(BodyInserters.fromValue(new ErrorResponse(err.getAllErrors().get(0).getCode(), err.getAllErrors().get(0).getDefaultMessage())));
 
-        );
+        });
   }
-
-
 }

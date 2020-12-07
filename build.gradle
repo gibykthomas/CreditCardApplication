@@ -10,11 +10,19 @@ sourceCompatibility = '11'
 
 repositories {
 	mavenCentral()
+	maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation("io.springfox:springfox-swagger2:3.0.0-SNAPSHOT")
+	implementation("io.springfox:springfox-spring-webflux:3.0.0-SNAPSHOT")
+	implementation("io.springfox:springfox-swagger-ui:3.0.0-SNAPSHOT")
+
+//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'io.r2dbc:r2dbc-h2'
 	implementation 'com.h2database:h2'
 	compileOnly 'org.projectlombok:lombok:1.18.16'
@@ -22,6 +30,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok:1.18.16'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'io.projectreactor:reactor-test'
 }
 

@@ -15,13 +15,13 @@ public class CreditcardMapper {
         .build();
   }
 
-  public static Creditcard encryptCardDto(Creditcard t) {
+  public static Creditcard encryptCardDto(Creditcard card) {
     return Creditcard
         .builder()
-        .number(Crypto.encrypt(t.getNumber()))
-        .name(t.getName())
-        .balance(t.getBalance())
-        .creditLimit(t.getCreditLimit())
+        .number(Crypto.encrypt(card.getNumber()))
+        .name(card.getName())
+        .balance(card.getBalance())
+        .creditLimit(card.getCreditLimit())
         .build();
   }
 

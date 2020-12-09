@@ -1,62 +1,63 @@
 package com.sapient.creditcardApplication.utlils;
 
 import com.sapient.creditcardApplication.domain.Creditcard;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
-
+import org.springframework.web.server.ServerWebInputException;
+@Slf4j
 @Component
-public class PayloadValidator implements Validator {
+public class PayloadValidator {
+  @Autowired
+  private Environment env;
 
-  @Override
-  public boolean supports(Class<?> clazz) {
-    return Creditcard.class.equals(clazz);
+  public void validate(Creditcard creditcard) {
+    if (creditcard == null) {
+      log.info("Body of the request is missing");
+      throw new ServerWebInputException("Body of the request is missing");
+    }
+    if (creditcard.getNumber() == null || creditcard.getNumber().isEmpty()) {
+      log.info("Creditcard number is missing in the request");
+      throw new ServerWebInputException("Creditcard number is not provided");
+    }
+    if (creditcard.getName() == null || creditcard.getName().isEmpty()) {
+      log.info(String.format("Creditcard  - %s name is missing",creditcard.getNumber().replaceAll(".(?=.{4})", "X")));
+      throw new ServerWebInputException("Creditcard name is not provided");
+    }
+    if (creditcard.getCreditLimit() == null) {
+      log.info(String.format("Creditcard  - %s limit is missing",creditcard.getNumber().replaceAll(".(?=.{4})", "X")));
+      throw new ServerWebInputException("Creditcard Limit is not provided");
+    }
+    if (creditcard.getNumber().length() > Integer.parseInt(env.getProperty("config.MAX_CARDNUMBER_LENGTH"))) {
+      log.info(String.format("Creditcard  - %s number has more than allowed characters",creditcard.getNumber().replaceAll(".(?=.{4})", "X")));
+      throw new ServerWebInputException(String.format("Creditcard number is more than %d chars",Integer.parseInt(env.getProperty("config.MAX_CARDNUMBER_LENGTH"))));
+    }
+    validateLuhn10(creditcard);
   }
 
-  @Override
-  public void validate(Object target, Errors errors) {
-    Creditcard credit = (Creditcard) target;
-    if (credit.getNumber() == null || credit.getNumber().isEmpty()) {
-      errors.rejectValue("number", "400","Creditcard number is not provided");
-    }
-    if (credit.getName() == null || credit.getName().isEmpty()) {
-      errors.rejectValue("name", "400","Creditcard name is not provided");
-    }
-    if (credit.getCreditLimit() == null) {
-      errors.rejectValue("CreditLimit", "400","CreditLimit is not provided");
-    }
-    validateCardNumber(errors,credit.getNumber());
-  }
-
-  private void validateCardNumber(Errors errors, String number) {
-    int numberLength = number.length();
-    if (numberLength > 19) {
-      errors.rejectValue("number", "400","length of Creditcard number is more than 19");
-    }
+  private void validateLuhn10(Creditcard creditcard) {
+    //Validating Luhn10 Algorithm
     int sum = 0;
     int digit = 0;
-    for (int i=number.length() -1;i >= 0; i--) {
+    for (int i=creditcard.getNumber().length() -1;i >= 0; i--) {
       try {
-        digit = Integer.parseInt(String.valueOf(number.charAt(i)));
+        digit = Integer.parseInt(String.valueOf(creditcard.getNumber().charAt(i)));
       } catch (Exception e) {
-        errors.rejectValue("number", "400","Creditcard number has non digit characters");
-        break;
+        log.info(String.format("Creditcard  - %s number has non digit character - %s",creditcard.getNumber().replaceAll(".(?=.{4})", "X"),creditcard.getNumber().charAt(i)));
+        throw new ServerWebInputException("Creditcard number has non digit characters");
       }
-      if (i%2 !=0) {
-        sum += digit;
-      } else {
-        digit = digit*2;
-        if (digit > 9) {
-          sum += digit%10 + 1;
-        } else {
-          sum += digit;
-        }
-      }
+      if (i%2 == 0) digit = digit*2;
+      if (digit > 9) digit -= 9;
+      sum += digit;
     }
     if (sum == 0 || sum%10 !=0) {
-      errors.rejectValue("number", "400","Creditcard number is not valid");
-   }
+      log.info(String.format("Creditcard  - %s number is not satisfying Luhns Algorithm",creditcard.getNumber().replaceAll(".(?=.{4})", "X")));
+      throw new ServerWebInputException("Creditcard number is not valid");
+    }
 
   }
 }

@@ -27,7 +27,7 @@ paths:
       responses:
         400:
           description: Bad Request
-  /creditcard/get_all:        
+  /creditcard/all:
     get:
       tags:
       - Credit Card

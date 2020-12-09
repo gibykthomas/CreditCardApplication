@@ -1,6 +1,8 @@
 package com.sapient.creditcardApplication.handler;
 
 import java.math.BigDecimal;
+import java.util.List;
+
 import com.sapient.creditcardApplication.config.R2DBCConfiguration;
 import com.sapient.creditcardApplication.domain.Creditcard;
 import com.sapient.creditcardApplication.domain.CreditcardResponse;
@@ -57,7 +59,7 @@ class CreditcardHandlerTest {
 
   @Test
   void addCreditcard() {
-    Creditcard card = new Creditcard("123","test1", BigDecimal.ZERO);
+    Creditcard card = new Creditcard(null,"123","test1", BigDecimal.ZERO,BigDecimal.ZERO);
 
     this.creditcardRepository.save(card)
         .as(StepVerifier::create)
@@ -67,14 +69,62 @@ class CreditcardHandlerTest {
     creditcardRepository.findAll()
         .as(StepVerifier::create)
         .assertNext(card::equals)
+        .thenConsumeWhile(x -> true)
         .verifyComplete();
 
     creditcardRepository.delete(card);
   }
 
   @Test
+  void getAllCreditcard() {
+    Creditcard card1 = new Creditcard(null,"123","test1", BigDecimal.ZERO,BigDecimal.ZERO);
+    Creditcard card2 = new Creditcard(null,"1230","test1", BigDecimal.ZERO,BigDecimal.ZERO);
+    CreditcardResponse response1 = new CreditcardResponse("123","test1", BigDecimal.ZERO,BigDecimal.ZERO);
+    CreditcardResponse response2 = new CreditcardResponse("1230","test1", BigDecimal.ZERO,BigDecimal.ZERO);
+
+    webClient.mutateWith(csrf()).post()
+            .uri("/creditcard/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(card1))
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(CreditcardResponse.class).consumeWith(exchange -> {
+      CreditcardResponse created = exchange.getResponseBody();
+      assertThat(created.getNumber(), is(card1.getNumber()));
+      assertThat(created.getCreditlimit(), is(card1.getCreditLimit()));
+    });
+
+    webClient.mutateWith(csrf()).post()
+            .uri("/creditcard/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(card2))
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(CreditcardResponse.class).consumeWith(exchange -> {
+      CreditcardResponse created = exchange.getResponseBody();
+      assertThat(created.getNumber(), is(card2.getNumber()));
+      assertThat(created.getCreditlimit(), is(card2.getCreditLimit()));
+    });
+
+
+    webClient.mutateWith(csrf()).get()
+            .uri("/creditcard/all")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .is2xxSuccessful()
+            .expectBodyList(CreditcardResponse.class).contains(response1,response2);
+
+  }
+
+
+  @Test
   void add_valid_creditcard() {
-    Creditcard card = new Creditcard( "1234567890987658","1234567890987658","test1",BigDecimal.ZERO,BigDecimal.ZERO);
+    Creditcard card = new Creditcard("1234567890987658","1234567890987658","test1",BigDecimal.ZERO,BigDecimal.ZERO);
     CreditcardResponse creditcardResponse = new CreditcardResponse("1234567890987658","test1", BigDecimal.ZERO,BigDecimal.ZERO);
 
     webClient.mutateWith(csrf()).post()
@@ -107,9 +157,8 @@ class CreditcardHandlerTest {
         .expectBody(ErrorResponse.class).consumeWith(exchange -> {
       ErrorResponse errorResponse = exchange.getResponseBody();
       assertThat(exchange.getStatus(), is(HttpStatus.BAD_REQUEST));
-      assertThat(errorResponse.getCode(), is("400"));
+      assertThat(errorResponse.getCode(), is(400));
     });
-    creditcardRepository.delete(card);
   }
 
   @Test
@@ -127,7 +176,7 @@ class CreditcardHandlerTest {
         .expectBody(ErrorResponse.class).consumeWith(exchange -> {
       ErrorResponse errorResponse = exchange.getResponseBody();
       assertThat(exchange.getStatus(), is(HttpStatus.BAD_REQUEST));
-      assertThat(errorResponse.getCode(), is("400"));
+      assertThat(errorResponse.getCode(), is(400));
     });
   }
 
@@ -146,9 +195,8 @@ class CreditcardHandlerTest {
         .expectBody(ErrorResponse.class).consumeWith(exchange -> {
       ErrorResponse errorResponse = exchange.getResponseBody();
       assertThat(exchange.getStatus(), is(HttpStatus.BAD_REQUEST));
-      assertThat(errorResponse.getCode(), is("400"));
+      assertThat(errorResponse.getCode(), is(400));
     });
-    creditcardRepository.delete(card);
   }
 
   @Test
@@ -166,7 +214,7 @@ class CreditcardHandlerTest {
         .expectBody(ErrorResponse.class).consumeWith(exchange -> {
       ErrorResponse errorResponse = exchange.getResponseBody();
       assertThat(exchange.getStatus(), is(HttpStatus.BAD_REQUEST));
-      assertThat(errorResponse.getCode(), is("400"));
+      assertThat(errorResponse.getCode(), is(400));
     });
     creditcardRepository.delete(card);
   }
@@ -186,13 +234,8 @@ class CreditcardHandlerTest {
         .expectBody(ErrorResponse.class).consumeWith(exchange -> {
       ErrorResponse errorResponse = exchange.getResponseBody();
       assertThat(exchange.getStatus(), is(HttpStatus.BAD_REQUEST));
-      assertThat(errorResponse.getCode(), is("400"));
+      assertThat(errorResponse.getCode(), is(400));
     });
     creditcardRepository.delete(card);
   }
-
-
-
-
-
 }

@@ -27,7 +27,7 @@ public class CreditcardRouter {
         RouterFunctions.nest(
             accept(MediaType.APPLICATION_JSON).or(contentType(MediaType.APPLICATION_JSON)),
             RouterFunctions.route(POST("/add"),creditcardHandler::addCreditcard)
-                .andRoute(GET("/get_all"),creditcardHandler::getCreditcards)
+                .andRoute(GET("/all"),creditcardHandler::getCreditcards)
         ));
   }
 }

@@ -25,7 +25,7 @@ public class Creditcard implements Persistable<String>{
   private BigDecimal creditLimit;
 
   public Creditcard() {
-    this.balance = BigDecimal.ZERO;
+    this.balance = this.balance != null ? this.balance : BigDecimal.ZERO;
   }
 
   @Override

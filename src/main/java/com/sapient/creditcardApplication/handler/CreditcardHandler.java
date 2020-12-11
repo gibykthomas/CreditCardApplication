@@ -3,7 +3,6 @@ package com.sapient.creditcardApplication.handler;
 import com.sapient.creditcardApplication.domain.Creditcard;
 import com.sapient.creditcardApplication.domain.CreditcardResponse;
 import com.sapient.creditcardApplication.domain.ErrorResponse;
-import com.sapient.creditcardApplication.domain.Paging;
 import com.sapient.creditcardApplication.mapper.CreditcardMapper;
 import com.sapient.creditcardApplication.repository.CreditcardRepository;
 import com.sapient.creditcardApplication.utlils.Crypto;
@@ -12,11 +11,6 @@ import com.sapient.creditcardApplication.utlils.PayloadValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.AbstractBindingResult;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -25,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.function.Function;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -58,12 +50,15 @@ public class CreditcardHandler {
                       .body(BodyInserters.fromValue(new ErrorResponse(BAD_REQUEST.value(),e.getReason()))));
   }
   public Mono<ServerResponse> getCreditcards(ServerRequest request) {
-      Paging paging = new Paging();
-      Integer page =   request.queryParam("page").isPresent() ?Integer.parseInt(request.queryParam("page").get()) : paging.getPage();
-      Integer size =   request.queryParam("size").isPresent() ?Integer.parseInt(request.queryParam("size").get()) : paging.getSize();
-      Mono<PageRequest> pageRequest = Mono.just(PageRequest.of(page,size));
-
-      Flux<Creditcard> cards = pageRequest.flatMapMany(pr -> creditcardRepository.findAllBy(pr));
+    Integer page =   request.queryParam("page").isPresent() ?Integer.parseInt(request.queryParam("page").get()) : null;
+    Integer size =   request.queryParam("size").isPresent() ?Integer.parseInt(request.queryParam("size").get()) : null;
+    Flux<Creditcard> cards;
+      if (page != null && size != null) {
+        Mono<PageRequest> pageRequest = Mono.just(PageRequest.of(page, size));
+         cards =
+            pageRequest.flatMapMany(pr -> creditcardRepository.findAllBy(pr));
+      } else
+          cards =creditcardRepository.findAll();
       return cards
               .collectList()
               .flatMap(card -> {

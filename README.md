@@ -1,5 +1,5 @@
 # CreditCardApplication
-Credit Card Management Application New
+Credit Card Management Application
 
 ### Prerequsites
 1. The latest versions of **Java11** and **Gradle** must be installed on your system. 
